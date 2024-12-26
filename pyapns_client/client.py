@@ -20,15 +20,26 @@ class APNSClient:
     AUTH_TOKEN_LIFETIME = 45 * 60  # seconds
     AUTH_TOKEN_ENCRYPTION = 'ES256'
 
-    def __init__(self, mode, root_cert_path, auth_key_path, auth_key_id, team_id):
+    def __init__(self, mode, root_cert_path, auth_key_id, team_id, auth_key_path=None, auth_key=None):
         super().__init__()
 
         if root_cert_path is None:
             root_cert_path = True
+        
+        
+        # Ensure that either the auth key data or the auth key filepath is specified
+        if auth_key_path is None and auth_key is None:
+            raise Exception("Must specify either auth_key_path or auth_key.")
+        
+        # If auth key data specified, use that
+        if auth_key:
+            self._auth_key = auth_key
+        else:
+            # otherwise load from the specified filepath
+            self._auth_key = self._get_auth_key(auth_key_path)        
 
         self._base_url = self.BASE_URLS[mode]
         self._root_cert_path = root_cert_path
-        self._auth_key = self._get_auth_key(auth_key_path)
         self._auth_key_id = auth_key_id
         self._team_id = team_id
 
